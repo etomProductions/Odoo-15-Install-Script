@@ -14,7 +14,7 @@
 # ./odoo-install
 ################################################################################
 
-OE_USER="odoo15"
+OE_USER="etom-erp"
 OE_HOME="/$OE_USER"
 OE_HOME_EXT="/$OE_USER/${OE_USER}-server"
 
@@ -43,7 +43,7 @@ GENERATE_RANDOM_PASSWORD="True"
 OE_CONFIG="${OE_USER}-server"
 
 # Set the website name
-WEBSITE_NAME="odoo14.etom.finance"
+WEBSITE_NAME="erp.etom.finance"
 
 # Set the default Odoo longpolling port (you still have to use -c /etc/odoo-server.conf for example to use this.)
 LONGPOLLING_PORT="8072"
