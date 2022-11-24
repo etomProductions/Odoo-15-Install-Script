@@ -27,10 +27,10 @@ OE_PORT="8069"
 
 # Choose the Odoo version which you want to install. For example: 13.0, 12.0, 11.0 or saas-18. When using 'master' the master version will be installed.
 # IMPORTANT! This script contains extra libraries that are specifically needed for Odoo 13.0
-OE_VERSION="15.0"
+OE_VERSION="16.0"
 
 # Set this to True if you want to install the Odoo enterprise version!
-IS_ENTERPRISE="False"
+IS_ENTERPRISE="True"
 
 # Set this to True if you want to install Nginx!
 INSTALL_NGINX="True"
@@ -102,8 +102,16 @@ echo -e "\n---- Install python packages/requirements ----"
 sudo -H pip3 install -r https://github.com/odoo/odoo/raw/${OE_VERSION}/requirements.txt
 
 echo -e "\n---- Installing nodeJS NPM and rtlcss for LTR support ----"
+
+sudo apt-get update && sudo apt-get upgrade
 sudo apt-get install nodejs npm -y
+npm cache clean -f
+npm install -g n
+sudo n stable
 sudo npm install -g rtlcss
+
+#sudo apt-get install nodejs npm -y
+#sudo npm install -g rtlcss
 
 #--------------------------------------------------
 # Install Wkhtmltopdf if needed
