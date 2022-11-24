@@ -156,6 +156,7 @@ if [ $IS_ENTERPRISE = "True" ]; then
     sudo pip3 install psycopg2-binary pdfminer.six
     
     echo -e "\n--- Create symlink for node"
+    sudo rm /usr/bin/node
     sudo ln -s /usr/bin/nodejs /usr/bin/node
     sudo su $OE_USER -c "mkdir $OE_HOME/enterprise"
     sudo su $OE_USER -c "mkdir $OE_HOME/enterprise/addons"
