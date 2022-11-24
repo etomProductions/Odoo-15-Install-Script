@@ -110,7 +110,7 @@ npm install -g n
 sudo n stable
 sudo npm install -g rtlcss
 
-#sudo apt-get install nodejs npm -y
+#sudo apt-get install nodejs npm -y 
 #sudo npm install -g rtlcss
 
 #--------------------------------------------------
