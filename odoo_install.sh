@@ -1,19 +1,19 @@
 #!/bin/bash
 ################################################################################
-# Script for installing Odoo on Ubuntu 16.04, 18.04 and 20.04 (could be used for other version too)
-# Author: Yenthe Van Ginneken
+# Script for installing Odoo on Ubuntu 22.04 LTS [x86/64, amd64 jammy image] and not tested in any other Ubuntu images
+# Author: etom Productions (Based on Yenthe Van Ginneken script)
 #-------------------------------------------------------------------------------
-# This script will install Odoo on your Ubuntu 16.04 server. It can install multiple Odoo instances
+# This script will install Odoo on your 20.04 LTS (Google Cloud Platform) server. You can also install multiple Odoo instances
 # in one Ubuntu because of the different xmlrpc_ports
 #-------------------------------------------------------------------------------
-# Make a new file:
-# sudo nano odoo-install.sh
-# Place this content in it and then make the file executable:
-# sudo chmod +x odoo-install.sh
-# Execute the script to install Odoo:
-# ./odoo-install
+# How to start?
+# 1- Download the script to your GCP Server using: sudo wget SCRIPT_URL
+# 2- sudo nano odoo-install.sh
+# 3- Place this content in it and then make the file executable:
+# 4- sudo chmod +x odoo-install.sh
+# 5- Execute the script to install Odoo: ./odoo-install
+# 6- Enjoy ;)
 ################################################################################
-
 OE_USER="etom-erp"
 OE_HOME="/$OE_USER"
 OE_HOME_EXT="/$OE_USER/${OE_USER}-server"
@@ -21,62 +21,68 @@ OE_HOME_EXT="/$OE_USER/${OE_USER}-server"
 # The default port where this Odoo instance will run under (provided you use the command -c in the terminal)
 # Set to true if you want to install it, false if you don't need it or have it already installed.
 INSTALL_WKHTMLTOPDF="True"
-
 # Set the default Odoo port (you still have to use -c /etc/odoo-server.conf for example to use this.)
 OE_PORT="8069"
-
-# Choose the Odoo version which you want to install. For example: 13.0, 12.0, 11.0 or saas-18. When using 'master' the master version will be installed.
-# IMPORTANT! This script contains extra libraries that are specifically needed for Odoo 13.0
+# Set the default Odoo port (you still have to use -c /etc/odoo-server.conf for example to use this.)
+OE_INTERFACE="127.0.0.1"
+# Choose the Odoo version which you want to install. For example: 16.0, 15.0, 14.0 or saas-22. When using 'master' the master version will be installed.
+# IMPORTANT! This script contains extra libraries that are specifically needed for Odoo 16.0
 OE_VERSION="16.0"
-
 # Set this to True if you want to install the Odoo enterprise version!
 IS_ENTERPRISE="True"
-
+# Installs postgreSQL V14 instead of defaults (e.g V12 for Ubuntu 20/22) - this improves performance
+INSTALL_POSTGRESQL_FOURTEEN="True"
 # Set this to True if you want to install Nginx!
 INSTALL_NGINX="True"
-
 # Set the superadmin password - if GENERATE_RANDOM_PASSWORD is set to "True" we will automatically generate a random password, otherwise we use this one
-OE_SUPERADMIN="admin"
-
+OE_SUPERADMIN="etom"
 # Set to "True" to generate a random password, "False" to use the variable in OE_SUPERADMIN
 GENERATE_RANDOM_PASSWORD="True"
 OE_CONFIG="${OE_USER}-server"
-
+# Set the host for database
+OE_DBHOST="127.0.0.1"
+# Set the database port
+OE_DBPORT="5432"
+# Set the database username (Update after installing sudo nano /etc/$OE_USER.conf)
+OE_DBUSER=""
+# Set the database password (Update after installing /etc/$OE_USER.conf)
+OE_PASSWORD=""
 # Set the website name
-WEBSITE_NAME="seexsea.firms.services"
-
+WEBSITE_NAME="YOUR_DOMAIN_NAME"
 # Set the default Odoo longpolling port (you still have to use -c /etc/odoo-server.conf for example to use this.)
 LONGPOLLING_PORT="8072"
-
 # Set to "True" to install certbot and have ssl enabled, "False" to use http
 ENABLE_SSL="True"
-
 # Provide Email to register ssl certificate
-ADMIN_EMAIL="t.ahmed@stride.ae"
+ADMIN_EMAIL="odoo@example.com"
 
+
+###
+###  WKHTMLTOPDF download links
+## === Ubuntu Trusty x64 & x32 === (for other distributions please replace these two links,
+## in order to have correct version of wkhtmltopdf installed, for a danger note refer to
+## https://github.com/odoo/odoo/wiki/Wkhtmltopdf ):
+## https://www.odoo.com/documentation/16.0/administration/install.html
 ##
+# Enable ufw firewall ports as the ports are close by default.
+sudo ufw allow 22,25,143,80,443,3306,8069,8072/tcp
+sudo ufw allow "OpenSSH"
+sudo ufw enable
+
+
+## Installing 'rtlcss' package.
+echo -e "\n---- Installing rtlcss via nodejs  ----"
+sudo npm install -g rtlcss
+
 ###  WKHTMLTOPDF download links
 ## === Ubuntu Trusty x64 & x32 === (for other distributions please replace these two links,
 ## in order to have correct version of wkhtmltopdf installed, for a danger note refer to
 ## https://github.com/odoo/odoo/wiki/Wkhtmltopdf ):
 ## https://www.odoo.com/documentation/13.0/setup/install.html#debian-ubuntu
-
-
-#--------------------------------------------------
-# Enable Google Cloud Firewall ports.
-#--------------------------------------------------
-sudo ufw allow 22,25,143,80,443,3306,8069,8072/tcp
-sudo ufw enable
-
-WKHTMLTOX_X64="https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.$(lsb_release -c -s)_amd64.deb"
-WKHTMLTOX_X32="https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.$(lsb_release -c -s)_i386.deb"
-#--------------------------------------------------
-# Update Server
-#--------------------------------------------------
-echo -e "\n---- Update Server ----"
-
+WKHTMLTOX_X64="https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.$(lsb_release -c -s)_amd64.deb"
+WKHTMLTOX_X32="https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.$(lsb_release -c -s)_i386.deb"
 # universe package is for Ubuntu 18.x
-sudo add-apt-repository universe
+#sudo add-apt-repository universe
 
 # libpng12-0 dependency for wkhtmltopdf
 sudo add-apt-repository "deb http://mirrors.kernel.org/ubuntu/ xenial main"
@@ -96,21 +102,14 @@ sudo su - postgres -c "createuser -s $OE_USER" 2> /dev/null || true
 # Install Dependencies
 #--------------------------------------------------
 echo -e "\n--- Installing Python 3 + pip3 --"
-sudo apt-get install git python3 python3-pip build-essential wget python3-dev python3-venv python3-wheel libxslt-dev libzip-dev libldap2-dev libsasl2-dev python3-setuptools node-less libpng12-0 libjpeg-dev gdebi -y
+sudo apt-get install git python3 build-essential libzip-dev python3-dev libxslt1-dev python3-pip libldap2-dev python3-wheel libsasl2-dev python3-venv python3-setuptools node-less libjpeg-dev xfonts-75dpi xfonts-base libxrender1 libpq-dev libffi-dev fontconfig
 
 echo -e "\n---- Install python packages/requirements ----"
 sudo -H pip3 install -r https://github.com/odoo/odoo/raw/${OE_VERSION}/requirements.txt
 
 echo -e "\n---- Installing nodeJS NPM and rtlcss for LTR support ----"
-
-sudo apt-get update && sudo apt-get upgrade
-#sudo apt-get install nodejs npm -y
-#npm cache clean -f
-#npm install -g n
-#sudo n stable
-#sudo npm install -g rtlcss
-
-sudo apt-get install nodejs npm -y 
+sudo curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+sudo apt install nodejs
 sudo npm install -g rtlcss
 
 #--------------------------------------------------
@@ -125,7 +124,8 @@ if [ $INSTALL_WKHTMLTOPDF = "True" ]; then
       _url=$WKHTMLTOX_X32
   fi
   sudo wget $_url
-  sudo gdebi --n `basename $_url`
+  sudo apt install -f
+  sudo dpkg -i `basename $_url`
   sudo ln -s /usr/local/bin/wkhtmltopdf /usr/bin
   sudo ln -s /usr/local/bin/wkhtmltoimage /usr/bin
 else
@@ -147,42 +147,30 @@ sudo chown $OE_USER:$OE_USER /var/log/$OE_USER
 echo -e "\n==== Installing ODOO Server ===="
 sudo git clone --depth 1 --branch $OE_VERSION https://www.github.com/odoo/odoo $OE_HOME_EXT/
 
-
-
-
-#THE START#
-
 if [ $IS_ENTERPRISE = "True" ]; then
     # Odoo Enterprise install!
-    sudo apt remove python3-pip
-    sudo apt-get remove python-pip-whl
-    sudo apt install python3-pip
-    #sudo reboot
-    
+    sudo pip3 install psycopg2-binary pdfminer.six
+    echo -e "\n--- Create symlink for node"
+    sudo ln -s /usr/bin/nodejs /usr/bin/node
     sudo su $OE_USER -c "mkdir $OE_HOME/enterprise"
     sudo su $OE_USER -c "mkdir $OE_HOME/enterprise/addons"
 
     GITHUB_RESPONSE=$(sudo git clone --depth 1 --branch $OE_VERSION https://www.github.com/odoo/enterprise "$OE_HOME/enterprise/addons" 2>&1)
+    while [[ $GITHUB_RESPONSE == *"Authentication"* ]]; do
+        echo "------------------------WARNING------------------------------"
+        echo "Your authentication with Github has failed! Please try again."
+        printf "In order to clone and install the Odoo enterprise version you \nneed to be an offical Odoo partner and you need access to\nhttp://github.com/odoo/enterprise.\n"
+        echo "TIP: Press ctrl+c to stop this script."
+        echo "-------------------------------------------------------------"
+        echo " "
+        GITHUB_RESPONSE=$(sudo git clone --depth 1 --branch $OE_VERSION https://www.github.com/odoo/enterprise "$OE_HOME/enterprise/addons" 2>&1)
+    done
 
-sudo apt-get update -y
-    #sudo reboot
-        
+    echo -e "\n---- Added Enterprise code under $OE_HOME/enterprise/addons ----"
+    echo -e "\n---- Installing Enterprise specific libraries ----"
     sudo -H pip3 install num2words ofxparse dbfread ebaysdk firebase_admin pyOpenSSL
-    #sudo reboot
-    
-    sudo apt-get install -y python3-testresources
-    #sudo reboot
-    
     sudo npm install -g less
-    #sudo reboot
-    
     sudo npm install -g less-plugin-clean-css
-    #sudo reboot
-    #THE END#
-    
-    
-    
-    
 fi
 
 echo -e "\n---- Create custom module directory ----"
@@ -192,13 +180,7 @@ sudo su $OE_USER -c "mkdir $OE_HOME/custom/addons"
 echo -e "\n---- Setting permissions on home folder ----"
 sudo chown -R $OE_USER:$OE_USER $OE_HOME/*
 
-echo -e "* Create server config file"
-
-
-
-
-
-
+echo -e "*Create server config file"
 
 sudo touch /etc/${OE_CONFIG}.conf
 echo -e "* Creating server config file"
@@ -208,6 +190,7 @@ if [ $GENERATE_RANDOM_PASSWORD = "True" ]; then
     OE_SUPERADMIN=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)
 fi
 sudo su root -c "printf 'admin_passwd = ${OE_SUPERADMIN}\n' >> /etc/${OE_CONFIG}.conf"
+
 if [ $OE_VERSION > "11.0" ];then
     sudo su root -c "printf 'http_port = ${OE_PORT}\n' >> /etc/${OE_CONFIG}.conf"
 else
@@ -216,21 +199,18 @@ fi
 sudo su root -c "printf 'logfile = /var/log/${OE_USER}/${OE_CONFIG}.log\n' >> /etc/${OE_CONFIG}.conf"
 
 if [ $IS_ENTERPRISE = "True" ]; then
+    sudo su root -c "printf 'db_host=${OE_DBHOST}\n' >> /etc/${OE_CONFIG}.conf"
+    sudo su root -c "printf 'db_port=${OE_DBPORT}\n' >> /etc/${OE_CONFIG}.conf"
+    sudo su root -c "printf 'db_user=${OE_DBUSER}\n' >> /etc/${OE_CONFIG}.conf"
+    sudo su root -c "printf 'db_password=${OE_PASSWORD}\n' >> /etc/${OE_CONFIG}.conf"
     sudo su root -c "printf 'addons_path=${OE_HOME}/enterprise/addons,${OE_HOME_EXT}/addons\n' >> /etc/${OE_CONFIG}.conf"
 else
     sudo su root -c "printf 'addons_path=${OE_HOME_EXT}/addons,${OE_HOME}/custom/addons\n' >> /etc/${OE_CONFIG}.conf"
 fi
 
-
-
-
-
-
-
-
-
-
-
+if [ $INSTALL_NGINX = "True" ]; then
+    sudo su root -c "printf 'xmlrpc_interface=${OE_INTERFACE}\n' >> /etc/${OE_CONFIG}.conf"
+fi
 sudo chown $OE_USER:$OE_USER /etc/${OE_CONFIG}.conf
 sudo chmod 640 /etc/${OE_CONFIG}.conf
 
@@ -261,13 +241,10 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
 DAEMON=$OE_HOME_EXT/odoo-bin
 NAME=$OE_CONFIG
 DESC=$OE_CONFIG
-
 # Specify the user name (Default: odoo).
 USER=$OE_USER
-
 # Specify an alternate config file (Default: /etc/openerp-server.conf).
 CONFIGFILE="/etc/${OE_CONFIG}.conf"
-
 # pidfile
 PIDFILE=/var/run/\${NAME}.pid
 # Additional options that are passed to the Daemon.
@@ -321,6 +298,7 @@ sudo chown root: /etc/init.d/$OE_CONFIG
 echo -e "* Start ODOO on Startup"
 sudo update-rc.d $OE_CONFIG defaults
 
+
 #--------------------------------------------------
 # Install Nginx if needed
 #--------------------------------------------------
@@ -330,10 +308,8 @@ if [ $INSTALL_NGINX = "True" ]; then
   cat <<EOF > ~/odoo
 server {
   listen 80;
-
   # set proper server name after domain set
   server_name $WEBSITE_NAME;
-
   # Add Headers for odoo proxy mode
   proxy_set_header X-Forwarded-Host \$host;
   proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -343,28 +319,22 @@ server {
   add_header X-XSS-Protection "1; mode=block";
   proxy_set_header X-Client-IP \$remote_addr;
   proxy_set_header HTTP_X_FORWARDED_HOST \$remote_addr;
-
   #   odoo    log files
   access_log  /var/log/nginx/$OE_USER-access.log;
   error_log       /var/log/nginx/$OE_USER-error.log;
-
   #   increase    proxy   buffer  size
-  proxy_buffers   16  128k;
-  proxy_buffer_size   256k;
-
+  proxy_buffers   16  64k;
+  proxy_buffer_size   128k;
   proxy_read_timeout 900s;
   proxy_connect_timeout 900s;
   proxy_send_timeout 900s;
-
   #   force   timeouts    if  the backend dies
   proxy_next_upstream error   timeout invalid_header  http_500    http_502
   http_503;
-
   types {
     text/less less;
     text/scss scss;
   }
-
   #   enable  data    compression
   gzip    on;
   gzip_min_length 1100;
@@ -374,23 +344,19 @@ server {
   client_header_buffer_size 4k;
   large_client_header_buffers 4 64k;
   client_max_body_size 0;
-
   location / {
     proxy_pass    http://127.0.0.1:$OE_PORT;
     # by default, do not forward anything
     proxy_redirect off;
   }
-
   location /longpolling {
     proxy_pass http://127.0.0.1:$LONGPOLLING_PORT;
   }
-
   location ~* .(js|css|png|jpg|jpeg|gif|ico)$ {
     expires 2d;
     proxy_pass http://127.0.0.1:$OE_PORT;
     add_header Cache-Control "public, no-transform";
   }
-
   # cache some static data in memory for 60mins.
   location ~ /[a-zA-Z0-9_-]*/static/ {
     proxy_cache_valid 200 302 60m;
@@ -407,7 +373,9 @@ EOF
   sudo rm /etc/nginx/sites-enabled/default
   sudo service nginx reload
   sudo su root -c "printf 'proxy_mode = True\n' >> /etc/${OE_CONFIG}.conf"
-  echo "Done! The Nginx server is up and running. Configuration can be found at /etc/nginx/sites-available/$WEBSITE_NAME"
+  sudo ufw allow "Nginx Full"
+  sudo ufw reload
+  echo "Done! The Nginx server is up and running, Firewall has been updated. Configuration can be found at /etc/nginx/sites-available/$WEBSITE_NAME"
 else
   echo "Nginx isn't installed due to choice of the user!"
 fi
